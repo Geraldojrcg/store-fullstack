@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}
+
+model ProductCategory {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+
+  products Product[]
+}
+
+model Product {
+  id        Int      @id @default(autoincrement())
+  name      String
+  price     Float
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+
+  category   ProductCategory @relation(fields: [categoryId], references: [id])
+  categoryId Int
+
+  orders OrderItem[]
+
+  @@index([name])
+}
+
+model Customer {
+  id       Int    @id @default(autoincrement())
+  name     String
+  email    String @unique
+  password String
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+
+  orders Order[]
+}
+
+model OrderItem {
+  id       Int @id @default(autoincrement())
+  quantity Int
+
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+
+  order   Order @relation(fields: [orderId], references: [id])
+  orderId Int
+}
+
+enum OrderStatus {
+  CREATED
+  PROCESSING
+  FINISHED
+}
+
+model Order {
+  id     Int         @id @default(autoincrement())
+  total  Float
+  status OrderStatus @default(CREATED)
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+
+  customer   Customer @relation(fields: [customerId], references: [id])
+  customerId Int
+
+  items OrderItem[]
+}
